@@ -1,4 +1,4 @@
-import React, { FC, useState, useRef, useEffect } from 'react';
+import React, { FC, useState, useRef, useEffect, useCallback } from 'react';
 import classNames from 'classnames';
 import {
   Placement,
@@ -100,19 +100,22 @@ export const Tooltip: FC<Partial<TooltipProps>> = ({
     };
   }, [visible]);
 
-  const deactivateAll = () =>
-    tooltips.forEach((r, i) => {
-      r(false);
-      tooltips.splice(i, 1);
-    });
+  const deactivateAll = useCallback(
+    () =>
+      tooltips.forEach((r, i) => {
+        r(false);
+        tooltips.splice(i, 1);
+      }),
+    []
+  );
 
-  const deactivate = () => {
+  const deactivate = useCallback(() => {
     const idx = tooltips.indexOf(ref.current);
     if (idx > -1) {
       setInternalVisible(false);
       tooltips.splice(idx, 1);
     }
-  };
+  }, []);
 
   return (
     <ConnectedOverlay
@@ -120,7 +123,7 @@ export const Tooltip: FC<Partial<TooltipProps>> = ({
       placement={placement}
       trigger={trigger}
       followCursor={followCursor}
-      visible={internalVisible}
+      open={internalVisible}
       content={() => {
         const contentChildren =
           typeof content === 'function' ? content() : content;
