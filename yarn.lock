@@ -11775,10 +11775,10 @@ rc@^1.0.1, rc@^1.1.6:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-rdk@4.0.2:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/rdk/-/rdk-4.0.2.tgz#a81a00581eb835bab7edd3222689c18bd3b96658"
-  integrity sha512-3jDSBO5Fp2rYLBPytQsVUzSDCM7dEoXzruGKrkKvp7NU4pmpXUlaij3mBqfqBhHeAOe6piluHquf3fMEdA7Nhg==
+rdk@4.0.7:
+  version "4.0.7"
+  resolved "https://registry.yarnpkg.com/rdk/-/rdk-4.0.7.tgz#0f847d9b5b22e4ce9c8c0c0dc2e2bc4211ab9d73"
+  integrity sha512-mZwqdlHxTq0y6hcU9QamwgQgDzqmW++kZL6ApL6ND+bBsDdLQsL9rC8qbf5OFkrFC/a5UwwZNix34HFm/G29ag==
   dependencies:
     classnames "^2.2.6"
     framer-motion "^1.9.1"
