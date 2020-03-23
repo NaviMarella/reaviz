@@ -1,3 +1,6 @@
+# 8.0.5 - 3/23/20
+- [Chore] Upgrade RDK to latest
+
 # 8.0.4 - 3/23/20
 - [Chore] Upgrade RDK to latest
 
