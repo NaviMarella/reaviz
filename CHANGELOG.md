@@ -1,3 +1,7 @@
+# 8.0.8 - 3/30/20
+- [Fix] Add pointer events none to sankey tooltip
+- [Chore] Upgrade RDK to latest
+
 # 8.0.7 - 3/30/20
 - [Chore] Upgrade RDK to latest
 
