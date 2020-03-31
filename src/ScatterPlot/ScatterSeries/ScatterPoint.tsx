@@ -34,7 +34,7 @@ export type ScatterPointProps = {
   /**
    * Color of the circle.
    */
-  color: ColorSchemeType;
+  color?: ColorSchemeType;
 
   /**
    * Cursor for the element.
@@ -59,7 +59,7 @@ export type ScatterPointProps = {
   /**
    * Whether to animate the enter/update/exit. Set internally by `ScatterSeries`.
    */
-  animated: boolean;
+  animated?: boolean;
 
   /**
    * Index of the element in the series. Set internally by `ScatterSeries`.
@@ -84,7 +84,7 @@ export type ScatterPointProps = {
   /**
    * Symbol element to render.
    */
-  symbol: (data: ChartInternalShallowDataShape) => ReactNode;
+  symbol?: (data: ChartInternalShallowDataShape) => ReactNode;
 
   /**
    * Whether the elment is visiblbe or not.
@@ -94,20 +94,20 @@ export type ScatterPointProps = {
   /**
    * Event for when a symbol is clicked.
    */
-  onClick: (data: ChartInternalShallowDataShape) => void;
+  onClick?: (data: ChartInternalShallowDataShape) => void;
 
   /**
    * Event for when the symbol has mouse enter.
    */
-  onMouseEnter: (data: ChartInternalShallowDataShape) => void;
+  onMouseEnter?: (data: ChartInternalShallowDataShape) => void;
 
   /**
    * Event for when the symbol has mouse leave.
    */
-  onMouseLeave: (data: ChartInternalShallowDataShape) => void;
+  onMouseLeave?: (data: ChartInternalShallowDataShape) => void;
 } & PropFunctionTypes;
 
-export const ScatterPoint: FC<ScatterPointProps> = ({
+export const ScatterPoint: FC<Partial<ScatterPointProps>> = ({
   symbol,
   index,
   id,
@@ -128,28 +128,28 @@ export const ScatterPoint: FC<ScatterPointProps> = ({
   const rectRef = useRef<any | null>(null);
   const [tooltipVisible, setTooltipVisible] = useState<boolean>(false);
   const extras = useMemo(() => constructFunctionProps(rest, data), [rest, data]);
-  const r = useMemo(() => typeof size === 'function' ? size(data) : size, [size, data]);
-  const renderedSymbol = useMemo(() => symbol ? symbol(data) : null, [data, symbol]);
+  const r = useMemo(() => typeof size === 'function' ? size(data!) : size, [size, data]);
+  const renderedSymbol = useMemo(() => symbol ? symbol(data!) : null, [data, symbol]);
 
   const transitionProps = useMemo(() =>
     animated ?
       {
         ...DEFAULT_TRANSITION,
-        delay: index * 0.005
+        delay: index! * 0.005
       } : {
         type: false,
         delay: 0
       }, [index, animated]);
 
   const enterProps = useMemo(() => {
-    let cy = yScale(data.y1);
+    let cy = yScale(data!.y1);
     if (yScale.bandwidth) {
       const width = yScale.bandwidth();
       cy = cy + width / 2;
     }
 
     return {
-      x: xScale(data.x),
+      x: xScale(data!.x),
       y: cy
     };
   }, [data, yScale]);
@@ -158,7 +158,7 @@ export const ScatterPoint: FC<ScatterPointProps> = ({
     const [yStartDomain] = yScale.domain();
     return {
       y: yScale(yStartDomain),
-      x: xScale(data.x)
+      x: xScale(data!.x)
     };
   }, [data, yScale]);
 
@@ -174,20 +174,20 @@ export const ScatterPoint: FC<ScatterPointProps> = ({
         ref={rectRef}
         onMouseEnter={() => {
           setTooltipVisible(true);
-          onMouseEnter(data);
+          onMouseEnter(data!);
         }}
         onMouseLeave={() => {
           setTooltipVisible(false);
-          onMouseLeave(data);
+          onMouseLeave(data!);
         }}
-        onClick={() => onClick(data)}
+        onClick={() => onClick(data!)}
         className={classNames({
           [css.inactive]: !active
         })}
       >
         {symbol ? (
           <motion.g
-            key={`symbol-${id}-${data.id!}`}
+            key={`symbol-${id}-${data!.id!}`}
             {...extras}
             initial={{
               translateX: exitProps.x,
@@ -210,7 +210,7 @@ export const ScatterPoint: FC<ScatterPointProps> = ({
           </motion.g>
         ) : (
           <motion.circle
-            key={`symbol-${id}-${data.id!}`}
+            key={`symbol-${id}-${data!.id!}`}
             className={extras.className}
             style={{ ...extras.style, cursor }}
             initial={{
