@@ -1,4 +1,4 @@
-import React, { Component, ReactElement } from 'react';
+import React, { useCallback, ReactElement, FC } from 'react';
 import {
   RadialScatterSeries,
   RadialScatterPoint,
@@ -50,14 +50,17 @@ export interface RadialPointSeriesProps {
   point: ReactElement<RadialScatterPointProps, typeof RadialScatterPoint>;
 }
 
-export class RadialPointSeries extends Component<RadialPointSeriesProps> {
-  static defaultProps: Partial<RadialPointSeriesProps> = {
-    show: 'hover',
-    point: <RadialScatterPoint />
-  };
-
-  isVisible(point: ChartInternalShallowDataShape, index: number) {
-    const { show, activeValues, data } = this.props;
+export const RadialPointSeries: FC<Partial<RadialPointSeriesProps>> = ({
+  data,
+  xScale,
+  yScale,
+  animated,
+  color,
+  activeValues,
+  show = 'hover',
+  point = <RadialScatterPoint />
+}) => {
+  const isVisible = useCallback((point: ChartInternalShallowDataShape, index: number) => {
     const isActive = activeValues && point && isEqual(activeValues.x, point.x);
 
     if (show === 'hover') {
@@ -72,31 +75,27 @@ export class RadialPointSeries extends Component<RadialPointSeriesProps> {
       if (activeValues) {
         return isActive;
       } else {
-        return index === data.length - 1;
+        return index === data!.length - 1;
       }
     }
 
     return show;
-  }
+  }, [data, activeValues, point, show]);
 
-  render() {
-    const { data, xScale, yScale, animated, point, color } = this.props;
-
-    return (
-      <RadialScatterSeries
-        animated={animated}
-        data={data}
-        xScale={xScale}
-        yScale={yScale}
-        point={
-          <CloneElement<RadialScatterPointProps>
-            element={point}
-            color={color}
-            tooltip={null}
-            visible={this.isVisible.bind(this)}
-          />
-        }
-      />
-    );
-  }
+  return (
+    <RadialScatterSeries
+      animated={animated}
+      data={data}
+      xScale={xScale}
+      yScale={yScale}
+      point={
+        <CloneElement<RadialScatterPointProps>
+          element={point}
+          color={color}
+          tooltip={null}
+          visible={isVisible}
+        />
+      }
+    />
+  );
 }
