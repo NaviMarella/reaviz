@@ -186,8 +186,6 @@ export class BarChart extends Component<BarChartProps> {
       }
     }
 
-    // data = this.getBinnedData(data, xScale, yScale);
-
     return { xScale, xScale1, yScale, data };
   }
 

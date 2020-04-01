@@ -10,6 +10,7 @@ export interface RadialAxisTickSeriesProps {
   interval?: number | TimeInterval;
   tickValues: any[];
   outerRadius: number;
+  type: 'value' | 'category' | 'time' | 'duration',
   innerRadius: number;
   tick: ReactElement<RadialAxisTickProps, typeof RadialAxisTick>;
 }
@@ -17,6 +18,7 @@ export interface RadialAxisTickSeriesProps {
 export class RadialAxisTickSeries extends Component<RadialAxisTickSeriesProps> {
   static defaultProps: Partial<RadialAxisTickSeriesProps> = {
     count: 12,
+    type: 'time',
     tick: <RadialAxisTick />
   };
 
@@ -28,9 +30,10 @@ export class RadialAxisTickSeries extends Component<RadialAxisTickSeriesProps> {
       tick,
       tickValues,
       innerRadius,
-      interval
+      interval,
+      type
     } = this.props;
-    const ticks = getTicks(scale, tickValues, 'time', count, interval || count);
+    const ticks = getTicks(scale, tickValues, type, count, interval || count);
 
     return (
       <Fragment>

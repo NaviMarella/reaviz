@@ -1,7 +1,7 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 import { RadialAreaChart } from './RadialAreaChart';
-import { medDateData } from '../../demo';
+import { medDateData, categoryData } from '../../demo';
 import { RadialAreaSeries } from './RadialAreaSeries';
 import { number, boolean, object, select } from '@storybook/addon-knobs';
 import {
@@ -17,7 +17,7 @@ import { schemes } from '../common/color';
 storiesOf('Charts|Line/Radial', module).add(
   'Simple',
   () => {
-    const innerRadius = number('Inner Radius', 80);
+    const innerRadius = number('Inner Radius', 0.1);
     const animated = boolean('Animated', true);
     const color = select('Color Scheme', schemes, 'cybertron');
     const autoRotate = boolean('Auto Rotate Labels', true);
@@ -75,4 +75,17 @@ storiesOf('Charts|Line/Radial', module).add(
     );
   },
   { options: { showPanel: true } }
-);
+)
+.add('Categorical Data', () => (
+  <RadialAreaChart
+    data={categoryData}
+    height={300}
+    width={300}
+    series={
+      <RadialAreaSeries
+        area={null}
+      />
+    }
+    axis={<RadialAxis type="category" />}
+  />
+));

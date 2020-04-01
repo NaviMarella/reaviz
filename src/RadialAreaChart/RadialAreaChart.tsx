@@ -4,7 +4,7 @@ import {
   ChartInternalShallowDataShape,
   buildShallowChartData
 } from '../common/data';
-import { scaleTime } from 'd3-scale';
+import { scaleTime, scaleBand } from 'd3-scale';
 import { getYDomain, getXDomain } from '../common/utils/domains';
 import {
   ChartProps,
@@ -15,6 +15,7 @@ import { CloneElement } from '../common/utils/children';
 import { RadialAreaSeries, RadialAreaSeriesProps } from './RadialAreaSeries';
 import { RadialAxis, RadialAxisProps } from '../common/Axis/RadialAxis';
 import { getRadialYScale } from '../common/scales/radial';
+import { uniqueBy } from '../common/utils';
 
 export interface RadialAreaChartProps extends ChartProps {
   /**
@@ -44,7 +45,7 @@ export const RadialAreaChart: FC<Partial<RadialAreaChartProps>> = ({
   height,
   className,
   data,
-  innerRadius = 80,
+  innerRadius = 0.1,
   series = <RadialAreaSeries />,
   axis = <RadialAxis />,
   margins = 75
@@ -60,11 +61,19 @@ export const RadialAreaChart: FC<Partial<RadialAreaChartProps>> = ({
       ) as ChartInternalShallowDataShape[];
 
       const yDomain = getYDomain({ data: d, scaled: false });
-      const xDomain = getXDomain({ data: d });
 
-      const xScale = scaleTime()
-        .range([0, 2 * Math.PI])
-        .domain(xDomain);
+      let xScale;
+      if (axis?.props.type === 'category') {
+        const xDomain = uniqueBy<ChartInternalShallowDataShape>(d, dd => dd.x);
+        xScale = scaleBand()
+          .range([0, 2 * Math.PI])
+          .domain(xDomain as any[]);
+      } else {
+        const xDomain = getXDomain({ data: d });
+        xScale = scaleTime()
+          .range([0, 2 * Math.PI])
+          .domain(xDomain);
+      }
 
       const yScale = getRadialYScale(innerRadius, outerRadius, yDomain);
 

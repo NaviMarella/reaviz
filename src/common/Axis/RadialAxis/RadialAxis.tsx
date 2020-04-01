@@ -14,6 +14,7 @@ export interface RadialAxisProps {
   width: number;
   xScale: any;
   innerRadius: number;
+  type: 'value' | 'time' | 'category';
   arcs: ReactElement<
     RadialAxisArcSeriesProps,
     typeof RadialAxisArcSeries
@@ -27,12 +28,13 @@ export interface RadialAxisProps {
 export class RadialAxis extends Component<RadialAxisProps, {}> {
   static defaultProps: Partial<RadialAxisProps> = {
     innerRadius: 10,
+    type: 'value',
     arcs: <RadialAxisArcSeries />,
     ticks: <RadialAxisTickSeries />
   };
 
   render() {
-    const { arcs, ticks, xScale, height, width, innerRadius } = this.props;
+    const { arcs, ticks, xScale, height, width, innerRadius, type } = this.props;
     const outerRadius = Math.min(height, width) / 2;
 
     return (
@@ -48,6 +50,7 @@ export class RadialAxis extends Component<RadialAxisProps, {}> {
           <CloneElement<RadialAxisTickSeriesProps>
             element={ticks}
             scale={xScale}
+            type={type}
             innerRadius={innerRadius}
             outerRadius={outerRadius}
           />
