@@ -1,4 +1,4 @@
-import React, { Component, Fragment, ReactElement } from 'react';
+import React, { ReactElement, useCallback, FC, useMemo, Fragment } from 'react';
 import { ChartInternalShallowDataShape } from '../../common/data';
 import { radialArea, curveCardinalClosed, curveLinearClosed } from 'd3-shape';
 import { RadialGradient, RadialGradientProps } from '../../common/Gradient';
@@ -63,65 +63,65 @@ export interface RadialAreaProps {
   gradient: ReactElement<RadialGradientProps, typeof RadialGradient> | null;
 }
 
-export class RadialArea extends Component<RadialAreaProps> {
-  static defaultProps: Partial<RadialAreaProps> = {
-    gradient: <RadialGradient />
-  };
+export const RadialArea: FC<Partial<RadialAreaProps>> = ({
+  id,
+  data,
+  className,
+  yScale,
+  color,
+  animated,
+  outerRadius,
+  xScale,
+  innerRadius,
+  interpolation,
+  gradient = <RadialGradient />
+}) => {
+  const transition = useMemo(() =>
+    animated ?
+      { ...DEFAULT_TRANSITION } :
+      {
+        type: false,
+        delay: 0
+      }, [animated]);
 
-  getFill(color: string) {
-    const { id, gradient } = this.props;
-
+  const getFill = useCallback((c: string) => {
     if (!gradient) {
-      return color;
+      return c;
     }
 
     return `url(#${id}-gradient)`;
-  }
+  }, [id, gradient]);
 
-  getPath(data: ChartInternalShallowDataShape[]) {
-    const { xScale, yScale, innerRadius, interpolation } = this.props;
+  const getPath = useCallback((d: ChartInternalShallowDataShape[]) => {
     const curve =
       interpolation === 'smooth' ? curveCardinalClosed : curveLinearClosed;
 
     const radialFn = radialArea()
-      .angle((d: any) => xScale(d.x))
-      .innerRadius(_ => innerRadius)
+      .angle((dd: any) => xScale(dd.x))
+      .innerRadius(_ => innerRadius!)
       .outerRadius((d: any) => yScale(d.y))
       .curve(curve);
 
-    return radialFn(data as any);
-  }
+    return radialFn(d as any);
+  }, [xScale, yScale, interpolation, innerRadius]);
 
-  getTransition() {
-    const { animated } = this.props;
+  const enter = useMemo(() => ({
+    d: getPath(data!),
+    opacity: 1
+  }), [data, getPath]);
 
-    if (animated) {
-      return {
-        ...DEFAULT_TRANSITION
-      };
-    } else {
-      return {
-        type: false,
-        delay: 0
-      };
-    }
-  }
-
-  renderArea(fill: string) {
-    const { data, className, yScale } = this.props;
-    const transition = this.getTransition();
-    const enter = {
-      d: this.getPath(data),
-      opacity: 1
-    };
-
+  const exit = useMemo(() => {
     const [yStart] = yScale.domain();
-    const exit = {
-      d: this.getPath(data.map(d => ({ ...d, y: yStart }))),
+    return {
+      d: getPath(data!.map(d => ({ ...d, y: yStart }))),
       opacity: 0
     };
+  }, [data, getPath, yScale]);
 
-    return (
+  const fill = color(data, 0);
+
+  return (
+    <Fragment>
       <MotionPath
         custom={{
           enter,
@@ -130,27 +130,16 @@ export class RadialArea extends Component<RadialAreaProps> {
         transition={transition}
         pointerEvents="none"
         className={className}
-        fill={this.getFill(fill)}
+        fill={getFill(color)}
       />
-    );
-  }
-
-  render() {
-    const { data, color, id, gradient, outerRadius } = this.props;
-    const fill = color(data, 0);
-
-    return (
-      <Fragment>
-        {this.renderArea(fill)}
-        {gradient && (
-          <CloneElement<RadialGradientProps>
-            element={gradient}
-            id={`${id}-gradient`}
-            radius={outerRadius}
-            color={fill}
-          />
-        )}
-      </Fragment>
-    );
-  }
+      {gradient && (
+        <CloneElement<RadialGradientProps>
+          element={gradient}
+          id={`${id}-gradient`}
+          radius={outerRadius}
+          color={fill}
+        />
+      )}
+    </Fragment>
+  );
 }

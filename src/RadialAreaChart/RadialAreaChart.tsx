@@ -38,7 +38,7 @@ export interface RadialAreaChartProps extends ChartProps {
   axis: ReactElement<RadialAxisProps, typeof RadialAxis> | null;
 }
 
-export const RadialAreaChart: FC<RadialAreaChartProps> = ({
+export const RadialAreaChart: FC<Partial<RadialAreaChartProps>> = ({
   id,
   width,
   height,
@@ -80,7 +80,7 @@ export const RadialAreaChart: FC<RadialAreaChartProps> = ({
     const { chartWidth, chartHeight, id } = containerProps;
     const outerRadius = Math.min(chartWidth, chartHeight) / 2;
     const { yScale, xScale, result } = getScales(
-      data,
+      data!,
       outerRadius,
       innerRadius
     );
