@@ -60,7 +60,7 @@ export const PieArc: FC<Partial<PieArcProps>> = ({
     : undefined;
   prevEnter.current = { ...data };
 
-  const d = useMotionValue(exit);
+  const d = useMotionValue('');
   const prevPath = useMotionValue(exit);
   const spring = useSpring(prevPath, {
     ...DEFAULT_TRANSITION,
