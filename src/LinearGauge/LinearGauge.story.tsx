@@ -50,16 +50,19 @@ storiesOf('Charts|Gauge/Linear/Single-Series', module)
         width={300}
         data={{ key: 'Step 1', data: [0, 15] }}
       />
+      <br />
       <LinearGauge
         height={15}
         width={300}
         data={{ key: 'Step 2', data: [15, 50] }}
       />
+      <br />
       <LinearGauge
         height={15}
         width={300}
         data={{ key: 'Step 3', data: [50, 55] }}
       />
+      <br />
       <LinearGauge
         height={15}
         width={300}
