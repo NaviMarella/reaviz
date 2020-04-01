@@ -51,7 +51,6 @@ export const PieArc: FC<Partial<PieArcProps>> = ({
     animated ?
       { ...DEFAULT_TRANSITION } :
       {
-        type: false,
         delay: 0
       }, [animated]);
 
@@ -81,7 +80,7 @@ export const PieArc: FC<Partial<PieArcProps>> = ({
     <g ref={arcRef}>
       <motion.path
         transition={transition}
-        d={transition.type !== false ? d : data.d}
+        d={d}
         style={{ cursor }}
         fill={fill}
         onMouseEnter={event => {

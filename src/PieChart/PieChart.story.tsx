@@ -45,6 +45,9 @@ storiesOf('Charts|Pie Chart/Pie', module)
     },
     { options: { showPanel: true } }
   )
+  .add('No Animation', () => (
+    <PieChart width={350} height={250} series={<PieArcSeries animated={false} />} data={browserData} />
+  ))
   .add('Label Overlap', () => (
     <PieChart width={350} height={250} data={browserData} />
   ))
