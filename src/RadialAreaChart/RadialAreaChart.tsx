@@ -1,4 +1,4 @@
-import React, { Component, Fragment, ReactElement } from 'react';
+import React, { Fragment, ReactElement, FC, useCallback } from 'react';
 import {
   ChartShallowDataShape,
   ChartInternalShallowDataShape,
@@ -15,7 +15,6 @@ import { CloneElement } from '../common/utils/children';
 import { RadialAreaSeries, RadialAreaSeriesProps } from './RadialAreaSeries';
 import { RadialAxis, RadialAxisProps } from '../common/Axis/RadialAxis';
 import { getRadialYScale } from '../common/scales/radial';
-import memoize from 'memoize-one';
 
 export interface RadialAreaChartProps extends ChartProps {
   /**
@@ -39,26 +38,29 @@ export interface RadialAreaChartProps extends ChartProps {
   axis: ReactElement<RadialAxisProps, typeof RadialAxis> | null;
 }
 
-export class RadialAreaChart extends Component<RadialAreaChartProps> {
-  static defaultProps: Partial<RadialAreaChartProps> = {
-    innerRadius: 80,
-    series: <RadialAreaSeries />,
-    axis: <RadialAxis />,
-    margins: 75
-  };
-
-  getScales = memoize(
+export const RadialAreaChart: FC<RadialAreaChartProps> = ({
+  id,
+  width,
+  height,
+  className,
+  data,
+  innerRadius = 80,
+  series = <RadialAreaSeries />,
+  axis = <RadialAxis />,
+  margins = 75
+}) => {
+  const getScales = useCallback((
     (
       preData: ChartShallowDataShape[],
       outerRadius: number,
       innerRadius: number
     ) => {
-      const data = buildShallowChartData(
+      const d = buildShallowChartData(
         preData
       ) as ChartInternalShallowDataShape[];
 
-      const yDomain = getYDomain({ data, scaled: false });
-      const xDomain = getXDomain({ data });
+      const yDomain = getYDomain({ data: d, scaled: false });
+      const xDomain = getXDomain({ data: d });
 
       const xScale = scaleTime()
         .range([0, 2 * Math.PI])
@@ -69,17 +71,16 @@ export class RadialAreaChart extends Component<RadialAreaChartProps> {
       return {
         yScale,
         xScale,
-        data
+        result: d
       };
     }
-  );
+  ), []);
 
-  renderChart(containerProps: ChartContainerChildProps) {
+  const renderChart = useCallback((containerProps: ChartContainerChildProps) => {
     const { chartWidth, chartHeight, id } = containerProps;
-    const { innerRadius, series, axis } = this.props;
     const outerRadius = Math.min(chartWidth, chartHeight) / 2;
-    const { yScale, xScale, data } = this.getScales(
-      this.props.data,
+    const { yScale, xScale, result } = getScales(
+      data,
       outerRadius,
       innerRadius
     );
@@ -98,7 +99,7 @@ export class RadialAreaChart extends Component<RadialAreaChartProps> {
         <CloneElement<RadialAreaSeriesProps>
           element={series}
           id={id}
-          data={data}
+          data={result}
           xScale={xScale}
           yScale={yScale}
           height={chartHeight}
@@ -108,24 +109,20 @@ export class RadialAreaChart extends Component<RadialAreaChartProps> {
         />
       </Fragment>
     );
-  }
+  }, [data, series, id, innerRadius, axis]);
 
-  render() {
-    const { id, width, height, margins, className } = this.props;
-
-    return (
-      <ChartContainer
-        id={id}
-        width={width}
-        height={height}
-        margins={margins}
-        xAxisVisible={false}
-        yAxisVisible={false}
-        center={true}
-        className={className}
-      >
-        {this.renderChart.bind(this)}
-      </ChartContainer>
-    );
-  }
+  return (
+    <ChartContainer
+      id={id}
+      width={width}
+      height={height}
+      margins={margins}
+      xAxisVisible={false}
+      yAxisVisible={false}
+      center={true}
+      className={className}
+    >
+      {renderChart}
+    </ChartContainer>
+  );
 }
