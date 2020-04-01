@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useCallback, useMemo, FC } from 'react';
 import { ChartInternalShallowDataShape } from '../../common/data';
 import { radialLine, curveCardinalClosed, curveLinearClosed } from 'd3-shape';
 import { RadialInterpolationTypes } from '../../common/utils/interpolation';
@@ -46,13 +46,17 @@ export interface RadialLineProps {
   className?: any;
 }
 
-export class RadialLine extends Component<RadialLineProps> {
-  static defaultProps: Partial<RadialLineProps> = {
-    strokeWidth: 2
-  };
-
-  getPath(data: ChartInternalShallowDataShape[]) {
-    const { xScale, yScale, interpolation } = this.props;
+export const RadialLine: FC<Partial<RadialLineProps>> = ({
+  xScale,
+  yScale,
+  className,
+  color,
+  data,
+  interpolation,
+  strokeWidth = 2,
+  animated = true
+}) => {
+  const getPath = useCallback((preData: ChartInternalShallowDataShape[]) => {
     const curve =
       interpolation === 'smooth' ? curveCardinalClosed : curveLinearClosed;
 
@@ -61,52 +65,44 @@ export class RadialLine extends Component<RadialLineProps> {
       .radius((d: any) => yScale(d.y))
       .curve(curve);
 
-    return radialFn(data as any);
-  }
+    return radialFn(preData as any);
+  }, [xScale, yScale, interpolation]);
 
-  getTransition() {
-    const { animated } = this.props;
-
-    if (animated) {
-      return {
-        ...DEFAULT_TRANSITION
-      };
-    } else {
-      return {
+  const transition = useMemo(() =>
+    animated ?
+      { ...DEFAULT_TRANSITION } :
+      {
         type: false,
         delay: 0
-      };
-    }
-  }
+      }, [animated]);
 
-  render() {
-    const { data, color, strokeWidth, className, yScale } = this.props;
-    const fill = color(data, 0);
-    const transition = this.getTransition();
-    const enter = {
-      d: this.getPath(data),
-      opacity: 1
-    };
+  const fill = color(data, 0);
 
+  const enter = useMemo(() => ({
+    d: getPath(data!),
+    opacity: 1
+  }), [data, getPath]);
+
+  const exit = useMemo(() => {
     const [yStart] = yScale.domain();
-    const exit = {
-      d: this.getPath(data.map(d => ({ ...d, y: yStart }))),
+    return {
+      d: getPath(data!.map(d => ({ ...d, y: yStart }))),
       opacity: 0
     };
+  }, [data, yScale, getPath]);
 
-    return (
-      <MotionPath
-        custom={{
-          enter,
-          exit
-        }}
-        transition={transition}
-        className={className}
-        pointerEvents="none"
-        stroke={fill}
-        fill="none"
-        strokeWidth={strokeWidth}
-      />
-    );
-  }
+  return (
+    <MotionPath
+      custom={{
+        enter,
+        exit
+      }}
+      transition={transition}
+      className={className}
+      pointerEvents="none"
+      stroke={fill}
+      fill="none"
+      strokeWidth={strokeWidth}
+    />
+  );
 }
