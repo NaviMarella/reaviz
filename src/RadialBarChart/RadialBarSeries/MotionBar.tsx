@@ -4,7 +4,7 @@ import { interpolate } from 'd3-interpolate';
 import { DEFAULT_TRANSITION } from '../../common/Motion';
 
 export const MotionBar = ({ custom, transition, arc, ...rest }) => {
-  const d = useMotionValue(custom.exit);
+  const d = useMotionValue('');
   const prevPath = useMotionValue(custom.exit);
   const spring = useSpring(prevPath, {
     ...DEFAULT_TRANSITION,
