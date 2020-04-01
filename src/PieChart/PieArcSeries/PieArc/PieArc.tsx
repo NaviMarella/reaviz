@@ -1,5 +1,4 @@
-import React, { Component, createRef, ReactElement } from 'react';
-import bind from 'memoize-bind';
+import React, { ReactElement, useState, FC, useRef, useMemo } from 'react';
 import chroma from 'chroma-js';
 import { ChartTooltip, ChartTooltipProps } from '../../../common/Tooltip';
 import { CloneElement } from '../../../common/utils/children';
@@ -8,39 +7,35 @@ import { MotionArc } from './MotionArc';
 
 export interface PieArcProps {
   data: any;
-  animated: boolean;
-  color: any;
-  tooltip: ReactElement<ChartTooltipProps, typeof ChartTooltip> | null;
-  cursor: string;
   innerArc: any;
-  disabled: boolean;
-  onClick: (e) => void;
-  onMouseEnter: (e) => void;
-  onMouseLeave: (e) => void;
+  color: any;
+  animated?: boolean;
+  tooltip?: ReactElement<ChartTooltipProps, typeof ChartTooltip> | null;
+  cursor?: string;
+  disabled?: boolean;
+  onClick?: (e) => void;
+  onMouseEnter?: (e) => void;
+  onMouseLeave?: (e) => void;
 }
 
-interface PieArcState {
-  active: boolean;
-}
+export const PieArc: FC<Partial<PieArcProps>> = ({
+  color,
+  data,
+  innerArc,
+  cursor = 'initial',
+  animated = true,
+  disabled = false,
+  onClick = () => undefined,
+  onMouseEnter = () => undefined,
+  onMouseLeave = () => undefined,
+  tooltip = <ChartTooltip />
+}) => {
+  const arcRef = useRef<SVGPathElement | null>(null);
+  const prevEnter = useRef<any | null>(null);
+  const [active, setActive] = useState<boolean>(false);
+  const fill = useMemo(() => active ? chroma(color).brighten(0.5) : color, [color, active]);
 
-export class PieArc extends Component<PieArcProps, PieArcState> {
-  static defaultProps: Partial<PieArcProps> = {
-    cursor: 'initial',
-    disabled: false,
-    onClick: () => undefined,
-    onMouseEnter: () => undefined,
-    onMouseLeave: () => undefined,
-    tooltip: <ChartTooltip />
-  };
-
-  previousEnter?: any;
-  arc = createRef<SVGPathElement>();
-  state: PieArcState = {
-    active: false
-  };
-
-  getExitProps() {
-    const { data, animated } = this.props;
+  const exit = useMemo(() => {
     const startAngle = data.startAngle;
     const endAngle = animated ? startAngle : data.endAngle;
 
@@ -49,98 +44,69 @@ export class PieArc extends Component<PieArcProps, PieArcState> {
       startAngle,
       endAngle
     };
-  }
+  }, [data, animated]);
 
-  onMouseEnter(event: MouseEvent) {
-    const { onMouseEnter, data, disabled } = this.props;
-
-    if (!disabled) {
-      this.setState({ active: true });
-
-      onMouseEnter({
-        value: data.data,
-        nativeEvent: event
-      });
-    }
-  }
-
-  onMouseLeave(event: MouseEvent) {
-    const { onMouseLeave, data, disabled } = this.props;
-
-    if (!disabled) {
-      this.setState({ active: false });
-
-      onMouseLeave({
-        value: data.data,
-        nativeEvent: event
-      });
-    }
-  }
-
-  onMouseClick(event: MouseEvent) {
-    const { onClick, data, disabled } = this.props;
-
-    if (!disabled) {
-      onClick({
-        value: data.data,
-        nativeEvent: event
-      });
-    }
-  }
-
-  getTransition() {
-    const { animated } = this.props;
-
-    if (animated) {
-      return {
-        ...DEFAULT_TRANSITION
-      };
-    } else {
-      return {
+  const transition = useMemo(() =>
+    animated ?
+      { ...DEFAULT_TRANSITION } :
+      {
         type: false,
         delay: 0
-      };
-    }
-  }
+      }, [animated]);
 
-  render() {
-    const { color, data, tooltip, cursor, innerArc } = this.props;
-    const { active } = this.state;
-    const exit = this.getExitProps();
-    const fill = active ? chroma(color).brighten(0.5) : color;
-    const transition = this.getTransition();
+  // Cache the previous for transition use later
+  const previousEnter = prevEnter.current
+    ? { ...prevEnter.current }
+    : undefined;
+  prevEnter.current = { ...data };
 
-    // Cache the previous for transition use later
-    const previousEnter = this.previousEnter
-      ? { ...this.previousEnter }
-      : undefined;
-    this.previousEnter = { ...data };
-
-    return (
-      <g ref={this.arc}>
-        <MotionArc
-          style={{ cursor }}
-          fill={fill}
-          arc={innerArc}
-          custom={{
-            enter: data,
-            exit,
-            previousEnter
-          }}
-          transition={transition}
-          onMouseEnter={bind(this.onMouseEnter, this)}
-          onMouseLeave={bind(this.onMouseLeave, this)}
-          onClick={bind(this.onMouseClick, this)}
+  return (
+    <g ref={arcRef}>
+      <MotionArc
+        style={{ cursor }}
+        fill={fill}
+        arc={innerArc}
+        custom={{
+          enter: data,
+          exit,
+          previousEnter
+        }}
+        transition={transition}
+        onMouseEnter={event => {
+          if (!disabled) {
+            setActive(true);
+            onMouseEnter({
+              value: data.data,
+              nativeEvent: event
+            });
+          }
+        }}
+        onMouseLeave={event => {
+          if (!disabled) {
+            setActive(false);
+            onMouseLeave({
+              value: data.data,
+              nativeEvent: event
+            });
+          }
+        }}
+        onClick={event => {
+          if (!disabled) {
+            onClick({
+              value: data.data,
+              nativeEvent: event
+            });
+          }
+        }}
+      />
+      {tooltip && !tooltip.props.disabled && (
+        <CloneElement<ChartTooltipProps>
+          element={tooltip}
+          visible={!!active}
+          reference={arcRef}
+          value={{ y: data.data.data, x: data.data.key }}
         />
-        {tooltip && !tooltip.props.disabled && (
-          <CloneElement<ChartTooltipProps>
-            element={tooltip}
-            visible={!!active}
-            reference={this.arc}
-            value={{ y: data.data.data, x: data.data.key }}
-          />
-        )}
-      </g>
-    );
-  }
+      )}
+    </g>
+  );
 }
