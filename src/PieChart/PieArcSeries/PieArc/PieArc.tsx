@@ -1,9 +1,10 @@
-import React, { ReactElement, useState, FC, useRef, useMemo } from 'react';
+import React, { ReactElement, useState, FC, useRef, useMemo, useEffect } from 'react';
 import chroma from 'chroma-js';
 import { ChartTooltip, ChartTooltipProps } from '../../../common/Tooltip';
 import { CloneElement } from '../../../common/utils/children';
 import { DEFAULT_TRANSITION } from '../../../common/Motion';
-import { MotionArc } from './MotionArc';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { interpolate } from 'd3-interpolate';
 
 export interface PieArcProps {
   data: any;
@@ -60,18 +61,29 @@ export const PieArc: FC<Partial<PieArcProps>> = ({
     : undefined;
   prevEnter.current = { ...data };
 
+  const d = useMotionValue(exit);
+  const prevPath = useMotionValue(exit);
+  const spring = useSpring(prevPath, {
+    ...DEFAULT_TRANSITION,
+    from: 0,
+    to: 1
+  });
+
+  useEffect(() => {
+    const from = previousEnter || prevPath.get();
+    const interpolator = interpolate(from, data);
+    const unsub = spring.onChange(v => d.set(innerArc(interpolator(v))));
+    prevPath.set(data);
+    return unsub;
+  }, [innerArc, data]);
+
   return (
     <g ref={arcRef}>
-      <MotionArc
+      <motion.path
+        transition={transition}
+        d={transition.type !== false ? d : data.d}
         style={{ cursor }}
         fill={fill}
-        arc={innerArc}
-        custom={{
-          enter: data,
-          exit,
-          previousEnter
-        }}
-        transition={transition}
         onMouseEnter={event => {
           if (!disabled) {
             setActive(true);
@@ -109,4 +121,4 @@ export const PieArc: FC<Partial<PieArcProps>> = ({
       )}
     </g>
   );
-}
+};
