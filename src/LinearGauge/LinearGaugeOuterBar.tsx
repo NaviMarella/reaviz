@@ -22,4 +22,4 @@ export const LinearGaugeOuterBar: FC<Partial<LinearGaugeOuterBarProps>> = ({
   width,
   fill,
   ...rest
-}) => <rect {...rest} fill={fill || '#484848'} width={width} height={height} />;
+}) => <rect {...rest} fill={fill || '#484848'} width={Math.max(width!, 0)} height={Math.max(height!, 0)} />;
