@@ -1,6 +1,6 @@
 import React, { Component, ReactElement } from 'react';
 import { ChartInternalShallowDataShape } from '../../common/data';
-import { getColor, ColorSchemeType } from '../../common/color';
+import { getColor, ColorSchemeType, schemes } from '../../common/color';
 import { CloneElement } from '../../common/utils/children';
 import { RadialAreaProps, RadialArea } from './RadialArea';
 import { RadialLine, RadialLineProps } from './RadialLine';
@@ -102,7 +102,7 @@ export class RadialAreaSeries extends Component<
   RadialAreaSeriesState
 > {
   static defaultProps: Partial<RadialAreaSeriesProps> = {
-    colorScheme: 'cybertron',
+    colorScheme: schemes.cybertron[0],
     interpolation: 'smooth',
     animated: true,
     area: <RadialArea />,
