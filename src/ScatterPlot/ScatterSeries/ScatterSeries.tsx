@@ -1,4 +1,4 @@
-import React, { Component, Fragment, ReactElement } from 'react';
+import React, { useCallback, Fragment, ReactElement, FC } from 'react';
 import { ChartInternalShallowDataShape } from '../../common/data';
 import { CloneElement } from '../../common/utils/children';
 import { ScatterPoint, ScatterPointProps } from './ScatterPoint';
@@ -60,15 +60,17 @@ export interface ScatterSeriesProps {
 const PADDING = 25;
 const HALF_PADDING = PADDING / 2;
 
-export class ScatterSeries extends Component<ScatterSeriesProps, {}> {
-  static defaultProps: Partial<ScatterSeriesProps> = {
-    animated: true,
-    point: <ScatterPoint />
-  };
-
-  renderPoint(pointData: ChartInternalShallowDataShape, index: number) {
-    const { data, width, id, isZoomed, point, activeIds, ...rest } = this.props;
-
+export const ScatterSeries: FC<Partial<ScatterSeriesProps>> = ({
+  data,
+  height,
+  width,
+  id,
+  isZoomed,
+  activeIds,
+  point = <ScatterPoint />,
+  ...rest
+}) => {
+  const renderPoint = useCallback((pointData: ChartInternalShallowDataShape, index: number) => {
     let pointId;
     if (pointData.id) {
       pointId = pointData.id;
@@ -94,27 +96,23 @@ export class ScatterSeries extends Component<ScatterSeriesProps, {}> {
         active={active}
       />
     );
-  }
+  }, [point, id, rest, activeIds]);
 
-  render() {
-    const { data, height, width, id, isZoomed } = this.props;
-
-    return (
-      <Fragment>
-        <defs>
-          <clipPath id={`${id}-path`}>
-            <rect
-              width={isZoomed ? width : width + PADDING}
-              height={height + PADDING}
-              x={isZoomed ? 0 : -HALF_PADDING}
-              y={-HALF_PADDING}
-            />
-          </clipPath>
-        </defs>
-        <g clipPath={`url(#${id}-path)`}>
-          {data.map((data, index) => this.renderPoint(data, index))}
-        </g>
-      </Fragment>
-    );
-  }
+  return (
+    <Fragment>
+      <defs>
+        <clipPath id={`${id}-path`}>
+          <rect
+            width={isZoomed ? width : width! + PADDING}
+            height={height! + PADDING}
+            x={isZoomed ? 0 : -HALF_PADDING}
+            y={-HALF_PADDING}
+          />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${id}-path)`}>
+        {data!.map(renderPoint)}
+      </g>
+    </Fragment>
+  );
 }
