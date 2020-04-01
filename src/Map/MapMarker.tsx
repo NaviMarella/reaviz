@@ -1,8 +1,7 @@
-import React, { Component, createRef, Fragment } from 'react';
+import React, { Fragment, useRef, useState, FC } from 'react';
 import { Tooltip } from '../common/Tooltip';
-import bind from 'memoize-bind';
-import css from './MapMarker.module.scss';
 import { motion } from 'framer-motion';
+import css from './MapMarker.module.scss';
 
 export interface MapMarkerProps {
   coordinates: [number, number];
@@ -14,10 +13,6 @@ export interface MapMarkerProps {
   onClick?: () => void;
 }
 
-interface MapMarkerState {
-  active?: boolean;
-}
-
 // Set padding modifier for the tooltips
 const modifiers = {
   offset: {
@@ -25,59 +20,48 @@ const modifiers = {
   }
 };
 
-export class MapMarker extends Component<MapMarkerProps, MapMarkerState> {
-  static defaultProps: Partial<MapMarkerProps> = {
-    size: 3,
-    onClick: () => undefined
-  };
+export const MapMarker: FC<Partial<MapMarkerProps>> = ({
+  size = 3,
+  index,
+  tooltip,
+  cx,
+  cy,
+  onClick = () => undefined
+}) => {
+  const ref = useRef<SVGCircleElement | null>(null);
+  const [active, setActive] = useState<boolean>(false);
 
-  ref = createRef<SVGCircleElement>();
-  state: MapMarkerState = {};
-
-  onMouseEnter() {
-    this.setState({ active: true });
-  }
-
-  onMouseLeave() {
-    this.setState({ active: false });
-  }
-
-  render() {
-    const { cx, cy, tooltip, size, index, onClick } = this.props;
-    const { active } = this.state;
-
-    return (
-      <Fragment>
-        <motion.circle
-          initial={{
-            opacity: 0,
-            scale: 0.02
-          }}
-          animate={{
-            opacity: 1,
-            scale: 1
-          }}
-          transition={{
-            delay: index * 0.3
-          }}
-          ref={this.ref}
-          className={css.marker}
-          cx={cx}
-          cy={cy}
-          r={size}
-          onMouseEnter={bind(this.onMouseEnter, this)}
-          onMouseLeave={bind(this.onMouseLeave, this)}
-          onClick={onClick}
+  return (
+    <Fragment>
+      <motion.circle
+        initial={{
+          opacity: 0,
+          scale: 0.02
+        }}
+        animate={{
+          opacity: 1,
+          scale: 1
+        }}
+        transition={{
+          delay: index! * 0.3
+        }}
+        ref={ref}
+        className={css.marker}
+        cx={cx}
+        cy={cy}
+        r={size}
+        onMouseEnter={() => setActive(true)}
+        onMouseLeave={() => setActive(false)}
+        onClick={onClick}
+      />
+      {tooltip && (
+        <Tooltip
+          visible={active}
+          reference={ref}
+          modifiers={modifiers}
+          content={tooltip}
         />
-        {tooltip && (
-          <Tooltip
-            visible={!!active}
-            reference={this.ref}
-            modifiers={modifiers}
-            content={tooltip}
-          />
-        )}
-      </Fragment>
-    );
-  }
+      )}
+    </Fragment>
+  );
 }
