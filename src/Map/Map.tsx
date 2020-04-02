@@ -14,7 +14,7 @@ type MarkerElement = ReactElement<MapMarkerProps, typeof MapMarker>;
 interface MapProps extends ChartProps {
   markers?: MarkerElement[];
   data: any;
-  fill: string;
+  fill?: string;
 }
 
 export const Map: FC<MapProps> = ({
@@ -27,75 +27,81 @@ export const Map: FC<MapProps> = ({
   data,
   fill = 'rgba(255, 255, 255, 0.3)'
 }) => {
-  const getProjection = useCallback(({ chartWidth, chartHeight }: ChartContainerChildProps) =>
-    geoMercator()
-      .fitSize([chartWidth, chartHeight], data)
-      .center([0, 35]), [data]);
+  const getProjection = useCallback(
+    ({ chartWidth, chartHeight }: ChartContainerChildProps) =>
+      geoMercator()
+        .fitSize([chartWidth, chartHeight], data)
+        .center([0, 35]),
+    [data]
+  );
 
-  const renderMarker = useCallback((
-    marker: MarkerElement,
-    index: number,
-    projection: GeoProjection
-  ) => {
-    const position = projection(marker.props.coordinates);
+  const renderMarker = useCallback(
+    (marker: MarkerElement, index: number, projection: GeoProjection) => {
+      const position = projection(marker.props.coordinates);
 
-    if (!position) {
-      console.warn(
-        `Position for ${marker.props.coordinates.toString()} not found.`
+      if (!position) {
+        console.warn(
+          `Position for ${marker.props.coordinates.toString()} not found.`
+        );
+        return null;
+      }
+
+      return (
+        <CloneElement<MapMarkerProps>
+          element={marker}
+          cx={position[0]}
+          cy={position[1]}
+          index={index}
+        />
       );
-      return null;
-    }
+    },
+    []
+  );
 
-    return (
-      <CloneElement<MapMarkerProps>
-        element={marker}
-        cx={position[0]}
-        cy={position[1]}
-        index={index}
-      />
-    );
-  }, []);
+  const renderCountry = useCallback(
+    (point, index: number, path: GeoPath) => {
+      // Exclude ATA
+      if (point.id === '010') {
+        return null;
+      }
 
-  const renderCountry = useCallback((point, index: number, path: GeoPath) => {
-    // Exclude ATA
-    if (point.id === '010') {
-      return null;
-    }
+      return <path key={`path-${index}`} d={path(point)!} fill={fill} />;
+    },
+    [fill]
+  );
 
-    return (
-      <path key={`path-${index}`} d={path(point)!} fill={fill} />
-    );
-  }, [fill]);
+  const renderChart = useCallback(
+    (containerProps: ChartContainerChildProps) => {
+      if (!data) {
+        return null;
+      }
 
-  const renderChart = useCallback((containerProps: ChartContainerChildProps) => {
-    if (!data) {
-      return null;
-    }
+      const projection = getProjection(containerProps);
+      const path = geoPath().projection(projection);
 
-    const projection = getProjection(containerProps);
-    const path = geoPath().projection(projection);
-
-    return (
-      <motion.g
-        initial={{
-          opacity: 0
-        }}
-        animate={{
-          opacity: 1
-        }}
-      >
-        {data.features.map((point, index) =>
-          renderCountry(point, index, path)
-        )}
-        {markers &&
-          markers.map((marker, index) => (
-            <Fragment key={`marker-${index}`}>
-              {renderMarker(marker, index, projection)}
-            </Fragment>
-          ))}
-      </motion.g>
-    );
-  }, [data, markers]);
+      return (
+        <motion.g
+          initial={{
+            opacity: 0
+          }}
+          animate={{
+            opacity: 1
+          }}
+        >
+          {data.features.map((point, index) =>
+            renderCountry(point, index, path)
+          )}
+          {markers &&
+            markers.map((marker, index) => (
+              <Fragment key={`marker-${index}`}>
+                {renderMarker(marker, index, projection)}
+              </Fragment>
+            ))}
+        </motion.g>
+      );
+    },
+    [data, markers]
+  );
 
   return (
     <ChartContainer
@@ -110,4 +116,4 @@ export const Map: FC<MapProps> = ({
       {props => renderChart(props)}
     </ChartContainer>
   );
-}
+};
