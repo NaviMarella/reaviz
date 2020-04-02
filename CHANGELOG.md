@@ -1,3 +1,12 @@
+# 8.1.0 - 4/2/20
+- [Feature] Add ability to use categorical scales with radial area/line chart
+- [Fix] Fix non-zero errors in linear bar charts
+- [Fix] Fix exceptions in pie chart
+- [Fix] Fix exceptions in radial bar chart
+- [Fix] Fix pie non-animated not working
+- [Chore] Lots of FC Migration
+- [Chore] Lots of dep upgrades
+
 # 8.0.9 - 3/31/20
 - [Chore] Upgrade RDK to latest
 
