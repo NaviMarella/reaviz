@@ -168,9 +168,6 @@
       "<rootDir>/dist/",
       "<rootDir>/node_modules/"
     ],
-    "setupFilesAfterEnv": [
-      "@testing-library/react/cleanup-after-each"
-    ],
     "transform": {
       ".(ts|tsx)": "ts-jest"
     },
