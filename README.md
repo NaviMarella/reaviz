@@ -25,7 +25,7 @@
 REAVIZ is a modular chart component library that leverages
 React natively for rendering the components while using D3js under the
 hood for calculations. The library provides an easy way to get started
-creating charts without sacrificing customization ability.
+creating charts without sacrificing customization ability. Check it out.
 
 ## 🚀 Quick Links
 
@@ -125,7 +125,7 @@ npm i reaviz --save
 then import a chart type into your JSX element:
 
 ```jsx
-import { BarChart } from "reaviz";
+import { BarChart } from 'reaviz';
 
 const data = [
   { key: 'IDS', data: 14 },
